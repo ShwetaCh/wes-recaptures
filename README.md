@@ -1,4 +1,4 @@
-# WES-RECAPTURES-IMPACT
+# WES-RECAPTURES
 
 Companion code to the manuscript: 
 WES recaptures of IMPACT sequencing
