@@ -29,19 +29,12 @@ dim(im_clin); head(im_clin)
 
 im_ex_clin = inner_join(ex_clin3, im_clin, by = c(Tumor_Sample_Barcode = "CMO"))
 
-im_dnsmpl_tmb = fread('~/tempo-cohort-level/fixed.downsampledTMB_ForRoslin.txt') %>% 
-  select(DMP, TMBIMPACT_Downsampled = TMBIMPACT.downsampled.fixed) %>%
-  filter(DMP %in% im_ex_clin$DMP)
-dim(im_dnsmpl_tmb) #1413
-
 url <- 'docs.google.com/spreadsheets/d/1ZQCZ-02b8VNNDL05w-FdUiTpIVJ0WAW0EwxCkgX3oM0'
 ex_roslin <- read.csv(text=gsheet2text(url, format='csv'), stringsAsFactors=FALSE) %>%
   select(DMP = DMPID, TMBWES = TMBExome, TMBIMPACT, TMBWES_IMgenes = TMBExomeIMgenes, TMBWES_NonIMgenes = TMBExome_NonIMgenes, Purity_Reviewed = PurityExome) %>% 
   filter(DMP %in% im_ex_clin$DMP)
 dim(ex_roslin) #1636
 
-im_ex_clin_roslin = inner_join(im_dnsmpl_tmb, ex_roslin, by = 'DMP')
-dim(im_ex_clin_roslin) #1413 -- figure out why rest are missing?!
 ##################
 
 ######### For Roslin showing TMB IMPACT vs. WES
@@ -52,13 +45,13 @@ im_ex_clin_roslin1 = inner_join(im_clin, ex_roslin, by = c('DMP')) %>%
 
 dim(im_ex_clin_roslin1) #1636
 # Equation
-label = lm_eqn(im_ex_clin_roslin,y=im_ex_clin_roslin$TMBIMPACT,x=im_ex_clin_roslin$TMBWES)
+label = lm_eqn(im_ex_clin_roslin1,y=im_ex_clin_roslin1$TMBIMPACT,x=im_ex_clin_roslin1$TMBWES)
 label
 # R²
-r2 = summary(lm(TMBWES~TMBIMPACT,data=im_ex_clin_roslin))$adj.r.squared
+r2 = summary(lm(TMBWES~TMBIMPACT,data=im_ex_clin_roslin1))$adj.r.squared
 r2
 #Spearman Correlation
-corr = cor.test(im_ex_clin_roslin$TMBWES, im_ex_clin_roslin$TMBIMPACT,method = "spearman") 
+corr = cor.test(im_ex_clin_roslin1$TMBWES, im_ex_clin_roslin1$TMBIMPACT,method = "spearman") 
 #print(str(corr))
 rho = as.numeric(corr$estimate)
 rho
