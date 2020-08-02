@@ -535,3 +535,80 @@ sc = filter(impact_mutations_big_wes1, type %in% c('snv')) %>%
 grid.arrange(sc, fpc, fpp, fpp2, nrow = 2, newpage = F)
 ggsave('~/tempo-cohort-level/Figure1D_RecallRates_Purity.pdf', plot = grid.arrange(sc, fpc, fpp, fpp2, nrow = 2, newpage = F))
 
+###################################
+# Final figure with errors bars, new version as of 08/01/2020
+###################################
+df = fread('/Users/chavans/tempo-cohort-level/Recall_graph_w_errorbars_080120.txt')
+head(df)
+
+dff1 = df %>% 
+  group_by(Bin) %>% 
+  filter(Category == "VAF") %>% 
+  mutate(se_Perc_called_mutations = Perc_called_mutations/sqrt(N), 
+                                        se_low_c = Perc_called_mutations - se_Perc_called_mutations,  
+                                        se_high_c = Perc_called_mutations + se_Perc_called_mutations,
+                                        se_Perc_detected_mutations_20cov = Perc_detected_mutations_20cov/sqrt(N), 
+                                        se_low_d = Perc_detected_mutations_20cov - se_Perc_detected_mutations_20cov,  
+                                        se_high_d = Perc_detected_mutations_20cov + se_Perc_detected_mutations_20cov) %>%
+  select(-c(Category, N,starts_with('se_l'),starts_with('se_h')))
+
+dff1.m = melt(dff1, id.vars = c('Bin','se_Perc_detected_mutations_20cov','se_Perc_called_mutations'))
+
+dff2.m = mutate(dff1.m, se = ifelse(variable == "Perc_called_mutations",se_Perc_called_mutations,
+                                    ifelse(variable == "Perc_detected_mutations_20cov",se_Perc_detected_mutations_20cov,"")))
+dff2.m = mutate(dff2.m, se = as.numeric(se), value = as.numeric(value))
+
+ggplot(dff2.m, aes(x=Bin*100, y=value, group=variable, color=variable)) + 
+  geom_line() +
+  geom_pointrange(aes(ymin=value-(se), ymax=value+(se))) +
+  # annotate('text', x = 20, y = 0.9520198-.02, color = 'black', label = 'Median') +
+  geom_line(size = 1) +
+  #geom_errorbar(,aes(ymin = value - ci, ymax = value + ci)) +
+  scale_color_jama() +
+  scale_y_continuous(expand = c(0,0), n.breaks=10, limits = c(0,1.15)) +
+  scale_x_discrete(limits = c(10,20,30,40,50,60,70,80,90,100)) +
+  theme_classic() +
+  theme(#aspect.ratio = 1,
+    legend.position = c(1,0), legend.justification = c(1,0),legend.background=element_blank()) +
+  labs(x = 'Variant allele fraction\n(bins of 10%)', y = 'Recall') +
+  guides(color = guide_legend(title = '', keywidth = unit(2,'lines'))) +
+  geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
+  annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
+  geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
+  
+###########################
+
+dff1 = df %>% 
+  group_by(Bin) %>% 
+  filter(Category == "PURITY") %>% 
+  mutate(se_Perc_called_mutations = Perc_called_mutations/sqrt(N), 
+         se_low_c = Perc_called_mutations - se_Perc_called_mutations,  
+         se_high_c = Perc_called_mutations + se_Perc_called_mutations,
+         se_Perc_detected_mutations_20cov = Perc_detected_mutations_20cov/sqrt(N), 
+         se_low_d = Perc_detected_mutations_20cov - se_Perc_detected_mutations_20cov,  
+         se_high_d = Perc_detected_mutations_20cov + se_Perc_detected_mutations_20cov) %>%
+  select(-c(Category, N,starts_with('se_l'),starts_with('se_h')))
+
+dff1.m = melt(dff1, id.vars = c('Bin','se_Perc_detected_mutations_20cov','se_Perc_called_mutations'))
+
+dff2.m = mutate(dff1.m, se = ifelse(variable == "Perc_called_mutations",se_Perc_called_mutations,
+                                    ifelse(variable == "Perc_detected_mutations_20cov",se_Perc_detected_mutations_20cov,"")))
+dff2.m = mutate(dff2.m, se = as.numeric(se), value = as.numeric(value))
+
+ggplot(dff2.m, aes(x=Bin*100, y=value, group=variable, color=variable)) + 
+  geom_line() +
+  geom_pointrange(aes(ymin=value-(se), ymax=value+(se))) +
+  # annotate('text', x = 20, y = 0.9520198-.02, color = 'black', label = 'Median') +
+  geom_line(size = 1) +
+  #geom_errorbar(,aes(ymin = value - ci, ymax = value + ci)) +
+  scale_color_jama() +
+  scale_y_continuous(expand = c(0,0), n.breaks=10, limits = c(0,1.15)) +
+  scale_x_discrete(limits = c(15,20,30,40,50,60,70,80,90,100)) +
+  theme_classic() +
+  theme(#aspect.ratio = 1,
+    legend.position = c(1,0), legend.justification = c(1,0),legend.background=element_blank()) +
+  labs(x = 'Purity estimates\n(bins of 10%)', y = 'Recall') +
+  guides(color = guide_legend(title = '', keywidth = unit(2,'lines'))) +
+  #geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
+  #annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
+  geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
