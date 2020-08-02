@@ -170,13 +170,14 @@ p1 = filter(impact_mutations_big_wes, type=='snv') %>%
               `Detected mutations at coverage 20` = sum(wes_all_detected==T)/sum(wes_not_detectable==F)) %>%
     select(-total) %>%
     melt(id.vars = 'vaf_bin') %>%
+    #summarySE(., measurevar="value", groupvars=c("vaf_bin")) %>%
     ggplot(., aes(x = as.factor(vaf_bin), y = value, group = variable, color = variable)) +
     geom_vline(xintercept = c(1,2), color = 'darkred', linetype = 'dashed') +
     annotate('text', x = c(1,2)+.4, y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
     geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black') +
     # annotate('text', x = 20, y = 0.9520198-.02, color = 'black', label = 'Median') +
     geom_line(size = 1.5) +
-    #geom_errorbar(aes(ymin = value - dy, ymax = value + dy)) +
+    #geom_errorbar(aes(ymin = value - ci, ymax = value + ci)) +
     scale_color_jama() +
     scale_y_continuous(expand = c(0,0), limits = c(0,1.04)) +
     scale_x_discrete(breaks = c('10%','20%','30%','40%','50%','60%','70%','80%','90%','100%')) +
