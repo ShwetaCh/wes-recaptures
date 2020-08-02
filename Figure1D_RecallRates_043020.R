@@ -176,6 +176,7 @@ p1 = filter(impact_mutations_big_wes, type=='snv') %>%
     geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black') +
     # annotate('text', x = 20, y = 0.9520198-.02, color = 'black', label = 'Median') +
     geom_line(size = 1.5) +
+    #geom_errorbar(aes(ymin = value - dy, ymax = value + dy)) +
     scale_color_jama() +
     scale_y_continuous(expand = c(0,0), limits = c(0,1.04)) +
     scale_x_discrete(breaks = c('10%','20%','30%','40%','50%','60%','70%','80%','90%','100%')) +
