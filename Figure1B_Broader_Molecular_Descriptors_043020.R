@@ -184,6 +184,7 @@ im_clin = fread('~/tempo-cohort-level/data_clinical_sample_011920.txt',skip = 4)
   distinct(.); 
 dim(im_clin); head(im_clin)
 
+
 theme_set(theme_classic(base_size = 12))
 
 SigWES = ex_clin %>% filter_at(vars(starts_with("Signature")),any_vars(. >= 0.2))
@@ -322,3 +323,38 @@ wespercstrongbinbingneo = ggplot(mol_desc, aes(x=reorder(DMP, mol_desc$DMP), y =
 plot = plot_grid(westmb, msiexome, wgd, purity, wespercstrongbinbingneo, cancer, align = "hv", ncol = 1, rel_heights = c(0.15,0.10,0.10,0.15,0.20,0.30))
 plot
 ggsave('~/tempo-cohort-level/Figure1B_MolecularDescriptors_v2.pdf', plot = plot, height=8,width =11)
+
+###################################################################################
+##Supplemental Figure2 Violing  plot by Cancer types - WES + IMPACT
+###################################################################################
+mol_desc$DMP = factor(mol_desc$DMP, levels=mol_desc$DMP[order(mol_desc$Cancer_Type_Aggregate)])
+colourCount = length(unique(mol_desc$Cancer_Type_Aggregate))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+#TMB
+tmb_w = ggplot(mol_desc, aes(x=Cancer_Type_Aggregate, y=TMB+1, fill=Cancer_Type_Aggregate)) + 
+  scale_y_log10() + scale_fill_manual(values = getPalette(colourCount)) + 
+  geom_violin(show.legend = F) + geom_jitter(size =0.1, show.legend = F) +
+  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank())
+
+#MSI
+msi_w = ggplot(mol_desc, aes(x=Cancer_Type_Aggregate, y=MSIscore, fill=Cancer_Type_Aggregate)) + 
+  scale_fill_manual(values = getPalette(colourCount)) + 
+  geom_violin(show.legend = F) + geom_jitter(size =0.1, show.legend = F) +
+  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank())
+
+#Purity
+purity_w = ggplot(mol_desc, aes(x=Cancer_Type_Aggregate, y=Purity_Reviewed, fill=Cancer_Type_Aggregate)) + 
+  scale_fill_manual(values = getPalette(colourCount)) + scale_y_continuous(breaks=seq(0,1,0.2)) +
+  geom_violin(show.legend = F) + geom_jitter(size =0.1, show.legend = F) +
+  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank())
+
+#Ploidy
+ploidy_w = ggplot(mol_desc, aes(x=Cancer_Type_Aggregate, y=Ploidy, fill=Cancer_Type_Aggregate)) + 
+  scale_fill_manual(values = getPalette(colourCount)) + scale_y_continuous(breaks=seq(0,8,2)) +
+  geom_violin(show.legend = F) + geom_jitter(size =0.1, show.legend = F) +
+  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank())
+
+plot = plot_grid(tmb_w, msi_w, purity_w, ploidy_w, align = "hv",ncol=1,rel_heights = c(0.25,0.25,0.25,0.25))
+#plot
+ggsave('~/tempo-cohort-level/SuppFigure2_MolecularDescriptorsByCancerTypes_Voilins_WES.pdf', plot = plot, height=11,width =8)
