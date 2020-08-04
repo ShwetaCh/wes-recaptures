@@ -637,14 +637,26 @@ filter(impact_mutations_big_wes,  type %in% c('snv','indel')) %>%
                    af_upper_binom_D = binom.confint(`Detected mutations at coverage 20 n`, Denom_Detected, conf.level = 0.95, method = 'wilson')$upper,
                    af_lower_binom_D = binom.confint(`Detected mutations at coverage 20 n`, Denom_Detected, conf.level = 0.95, method = 'wilson')$lower)
 ###
-#By Purity
-###
-
-###
 #By OncoKB
 ###
-
+filter(impact_mutations_big_wes,  type %in% c('snv','indel')) %>%
+  group_by(., oncokb_level) %>%
+  dplyr::summarise(total = n(),
+                   `Called mutations %` = sum(wes_all_called==T)/n(),
+                   `Called mutations n` = sum(wes_all_called==T),
+                    Denom_Called = n(),
+                   
+                   `Detected mutations at coverage 20 %` = sum(wes_all_detected==T)/sum(wes_not_detectable==F),
+                   `Detected mutations at coverage 20 n` = sum(wes_all_detected==T),
+                    Denom_Detected = sum(wes_not_detectable==F),
+                   af_upper_binom_C = binom.confint(`Called mutations n`, Denom_Called, conf.level = 0.95, method = 'wilson')$upper,
+                   af_lower_binom_C = binom.confint(`Called mutations n`, Denom_Called, conf.level = 0.95, method = 'wilson')$lower,
+                   af_upper_binom_D = binom.confint(`Detected mutations at coverage 20 n`, Denom_Detected, conf.level = 0.95, method = 'wilson')$upper,
+                   af_lower_binom_D = binom.confint(`Detected mutations at coverage 20 n`, Denom_Detected, conf.level = 0.95, method = 'wilson')$lower)
 ###
 #By Cancer Type
+###
+###
+#By Purity
 ###
 
