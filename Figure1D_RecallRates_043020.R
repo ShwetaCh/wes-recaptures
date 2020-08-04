@@ -614,7 +614,7 @@ ggplot(dff2.m, aes(x=Bin*100, y=value, group=variable, color=variable)) +
   geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
 
 #########################################
-##################Getting data for 95%CI
+##################Getting data for 95%CI Asof 080420--- Scratch the above we need 95%CI and not SE as such for error bars
 #########################################
 
 ###
