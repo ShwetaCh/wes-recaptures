@@ -30,7 +30,7 @@ data_summary <- function(data, varname, groupnames){
 }
 ##
 specify_decimal = function(x, k) format(round(x, k), nsmall=k)
-"%ni%" = Negate("%in%")
+"%ni%" = %nin% = Negate("%in%")
 curr_date = format(Sys.Date(),"%d-%b-%y")
 ##
 library(gsheet)
