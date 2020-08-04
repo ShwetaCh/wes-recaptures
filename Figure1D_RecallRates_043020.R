@@ -674,5 +674,36 @@ filter(impact_mutations_big_wes1,  type %in% c('snv','indel')) %>%
 ###
 #By Cancer Type
 ###
+all_samples = dplyr::rename(big_wes, Cancer_Type = CANCER_TYPE) 
+
+master_ct_conv = dplyr::count(all_samples, Cancer_Type) %>%
+  mutate(ct = ifelse(n<25, 'Other', Cancer_Type))
+
+master_ct_count = group_by(master_ct_conv, ct) %>%
+  dplyr::summarise(n = sum(n)) %>%
+  ungroup() %>%
+  mutate(ct = fct_reorder(ct, -n),
+         ct = fct_relevel(ct, 'Other', after = Inf))
+arrange(master_ct_conv,desc(n))
+impact_mutations_big_wes2 = left_join(impact_mutations_big_wes1, select(all_samples, cmo_id = CMO_ID, Cancer_Type)) %>%
+  left_join(., select(master_ct_conv, Cancer_Type, ct, n)) %>%
+  mutate(ct = fct_reorder(ct, -n),
+         ct = fct_relevel(ct, 'Other', after = Inf)) %>%
+  filter(type %in% c('snv','indel')) %>%
+  group_by(ct)
+
+filter(impact_mutations_big_wes2,  type %in% c('snv','indel')) %>%
+  group_by(., ct) %>%
+  dplyr::summarise(total = n(),
+                   `Called mutations %` = sum(wes_all_called==T)/n(),
+                   `Called mutations n` = sum(wes_all_called==T),
+                    Denom_Called = n(),
+                   `Detected mutations at coverage 20 %` = sum(wes_all_detected==T)/sum(wes_not_detectable==F),
+                   `Detected mutations at coverage 20 n` = sum(wes_all_detected==T),
+                    Denom_Detected = sum(wes_not_detectable==F),
+                   af_upper_binom_C = binom.confint(`Called mutations n`, Denom_Called, conf.level = 0.95, method = 'wilson')$upper,
+                   af_lower_binom_C = binom.confint(`Called mutations n`, Denom_Called, conf.level = 0.95, method = 'wilson')$lower,
+                   af_upper_binom_D = binom.confint(`Detected mutations at coverage 20 n`, Denom_Detected, conf.level = 0.95, method = 'wilson')$upper,
+                   af_lower_binom_D = binom.confint(`Detected mutations at coverage 20 n`, Denom_Detected, conf.level = 0.95, method = 'wilson')$lower)
 
 
