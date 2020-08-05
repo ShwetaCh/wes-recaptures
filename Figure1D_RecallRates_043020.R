@@ -761,3 +761,125 @@ ggplot(nff2.m, aes(x=as.numeric(Bin), y=value, group=variable, color=variable)) 
 #####
 ##Purity
 #####
+nf = fread('/Users/chavans/tempo-cohort-level/Recall_graph_input_for_95CI_080120.txt')
+head(nf)
+
+nff1 = nf %>% 
+  group_by(Bin) %>% 
+  filter(Category == "PURITY") %>%
+  select(Bin, called_mut_perc, detected_mut_20cov_perc, af_upper_binom_C,	af_lower_binom_C,	af_upper_binom_D,	af_lower_binom_D)
+head(nff1)
+
+nff1.m = melt(nff1, id.vars = c('Bin','af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+##Keep all the column names in the id.vars except for the ones that need to go under 'variable' in this case it's only called and detected % 
+#'called_mut_perc', 'detected_mut_20cov_perc',
+head(nff1.m)
+
+##Just something not so great way to get the data in the form I need
+lower = NA
+upper = NA
+nff2.m = mutate(nff1.m, lower = ifelse(variable == "called_mut_perc",af_lower_binom_C,lower),
+                        lower = ifelse(variable == "detected_mut_20cov_perc",af_lower_binom_D,lower),
+                        upper = ifelse(variable == "called_mut_perc",af_upper_binom_C,upper),
+                        upper = ifelse(variable == "detected_mut_20cov_perc",af_upper_binom_D,upper)
+               )
+head(nff2.m)
+nff2.m = mutate(nff2.m, lower = as.numeric(lower), upper = as.numeric(upper), value = as.numeric(value)) %>%
+  select(-c('af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+nff2.m
+
+ggplot(nff2.m, aes(x=as.numeric(Bin), y=value, group=variable, color=variable)) + 
+  geom_line() +
+  geom_pointrange(aes(ymin=lower, ymax=upper)) +
+  geom_line(size = 0.25) +
+  #geom_errorbar(,aes(ymin = value - ci, ymax = value + ci)) +
+  scale_color_jama() +
+  scale_y_continuous(expand = c(0,0), n.breaks=10, limits = c(0,1.1)) +
+  scale_x_discrete(limits = c(10,20,30,40,50,60,70,80,90,100)) +
+  theme_classic() +
+  theme(#aspect.ratio = 1,
+    legend.position = c(1,0), legend.justification = c(1,0),legend.background=element_blank()) +
+  labs(x = 'Purity Estimate\n(bins of 10%)', y = 'Recall') +
+  guides(color = guide_legend(title = '', keywidth = unit(2,'lines'))) +
+  #geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
+  #annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
+  geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
+
+#####
+#OncoKB
+#####
+nff1 = nf %>% 
+  group_by(Bin) %>% 
+  filter(Category == "ONCOKB") %>%
+  select(Bin, called_mut_perc, detected_mut_20cov_perc, af_upper_binom_C,	af_lower_binom_C,	af_upper_binom_D,	af_lower_binom_D)
+head(nff1)
+
+nff1.m = melt(nff1, id.vars = c('Bin','af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+##Keep all the column names in the id.vars except for the ones that need to go under 'variable' in this case it's only called and detected % 
+#'called_mut_perc', 'detected_mut_20cov_perc',
+head(nff1.m)
+
+##Just something not so great way to get the data in the form I need
+lower = NA
+upper = NA
+nff2.m = mutate(nff1.m, lower = ifelse(variable == "called_mut_perc",af_lower_binom_C,lower),
+                        lower = ifelse(variable == "detected_mut_20cov_perc",af_lower_binom_D,lower),
+                        upper = ifelse(variable == "called_mut_perc",af_upper_binom_C,upper),
+                        upper = ifelse(variable == "detected_mut_20cov_perc",af_upper_binom_D,upper)
+               )
+head(nff2.m)
+nff2.m = mutate(nff2.m, lower = as.numeric(lower), upper = as.numeric(upper), value = as.numeric(value)) %>%
+  select(-c('af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+nff2.m
+
+ggplot(nff2.m, aes(x=Bin, y=value, group=variable, fill=variable)) + 
+  geom_bar(stat='identity',position=position_dodge(),width = .50) +
+  geom_errorbar(aes(ymin=lower, ymax=upper),width = .250, position = position_dodge(0.5)) +
+  scale_fill_jama() +
+  theme_classic() +
+  theme(legend.position = "top",legend.background=element_blank(),legend.title=element_blank()) +
+  labs(x='', y = 'Recall') +
+  #guides(color = guide_legend(title = '', keywidth = unit(2,'lines'))) +
+  #geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
+  #annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
+  geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
+
+######
+#Cancer types
+######
+nff1 = nf %>% 
+  group_by(Bin) %>% 
+  filter(Category == "CANCER_TYPE") %>%
+  select(Bin, called_mut_perc, detected_mut_20cov_perc, af_upper_binom_C,	af_lower_binom_C,	af_upper_binom_D,	af_lower_binom_D)
+head(nff1)
+
+nff1.m = melt(nff1, id.vars = c('Bin','af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+##Keep all the column names in the id.vars except for the ones that need to go under 'variable' in this case it's only called and detected % 
+#'called_mut_perc', 'detected_mut_20cov_perc',
+head(nff1.m)
+
+##Just something not so great way to get the data in the form I need
+lower = NA
+upper = NA
+nff2.m = mutate(nff1.m, lower = ifelse(variable == "called_mut_perc",af_lower_binom_C,lower),
+                        lower = ifelse(variable == "detected_mut_20cov_perc",af_lower_binom_D,lower),
+                        upper = ifelse(variable == "called_mut_perc",af_upper_binom_C,upper),
+                        upper = ifelse(variable == "detected_mut_20cov_perc",af_upper_binom_D,upper)
+               )
+head(nff2.m)
+nff2.m = mutate(nff2.m, lower = as.numeric(lower), upper = as.numeric(upper), value = as.numeric(value)) %>%
+  select(-c('af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+nff2.m
+
+ggplot(nff2.m, aes(x=Bin, y=value, group=variable, fill=variable)) + 
+  geom_bar(stat='identity',position=position_dodge(),width = .50) +
+  geom_errorbar(aes(ymin=lower, ymax=upper),width = .250, position = position_dodge(0.5)) +
+  scale_fill_jama() +
+  theme_classic() +
+  theme(legend.position = "top",legend.background=element_blank(),legend.title=element_blank(),
+        axis.text.x = element_text(angle = 90)) +
+  labs(x='', y = 'Recall') +
+  #guides(color = guide_legend(title = '', keywidth = unit(2,'lines'))) +
+  #geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
+  #annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
+  geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
