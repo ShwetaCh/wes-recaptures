@@ -883,3 +883,49 @@ ggplot(nff2.m, aes(x=Bin, y=value, group=variable, fill=variable)) +
   #geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
   #annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
   geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
+######
+#Cancer types ORDERED - No Sarcoma or Biliary
+######
+library(forcats)
+
+nf = fread('/Users/chavans/tempo-cohort-level/Recall_graph_input_for_95CI_080120.txt')
+head(nf)
+######
+#Cancer types
+######
+nff1 = nf %>% 
+  group_by(Bin) %>% 
+  filter(Category == "CANCER_TYPE") %>%
+  select(Bin, called_mut_perc, detected_mut_20cov_perc, af_upper_binom_C,	af_lower_binom_C,	af_upper_binom_D,	af_lower_binom_D)
+head(nff1)
+
+nff1.m = melt(nff1, id.vars = c('Bin','af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+##Keep all the column names in the id.vars except for the ones that need to go under 'variable' in this case it's only called and detected % 
+#'called_mut_perc', 'detected_mut_20cov_perc',
+head(nff1.m)
+
+##Just something not so great way to get the data in the form I need
+lower = NA
+upper = NA
+nff2.m = mutate(nff1.m, lower = ifelse(variable == "called_mut_perc",af_lower_binom_C,lower),
+                lower = ifelse(variable == "detected_mut_20cov_perc",af_lower_binom_D,lower),
+                upper = ifelse(variable == "called_mut_perc",af_upper_binom_C,upper),
+                upper = ifelse(variable == "detected_mut_20cov_perc",af_upper_binom_D,upper)
+)
+head(nff2.m)
+nff2.m = mutate(nff2.m, lower = as.numeric(lower), upper = as.numeric(upper), value = as.numeric(value)) %>%
+  select(-c('af_upper_binom_C', 'af_lower_binom_C', 'af_upper_binom_D','af_lower_binom_D'))
+nff2.m
+
+ggplot(nff2.m, aes(x=fct_inorder(Bin), y=value, group=variable, fill=variable)) + 
+  geom_bar(stat='identity',position=position_dodge(),width = .50) +
+  geom_errorbar(aes(ymin=lower, ymax=upper),width = .250, position = position_dodge(0.5)) +
+  scale_fill_jama() +
+  theme_classic() +
+  theme(legend.position = "top",legend.background=element_blank(),legend.title=element_blank(),
+        axis.text.x = element_text(angle = 90)) +
+  labs(x='', y = 'Recall') +
+  #guides(color = guide_legend(title = '', keywidth = unit(2,'lines'))) +
+  #geom_vline(xintercept = c(5,10), color = 'darkred', linetype = 'dashed') +
+  #annotate('text', x = c(7,12), y = .05, color = 'darkred', label = c('5%', '10%'), size = 4) +
+  geom_hline(yintercept = 0.95, linetype = 'dashed', color = 'black')
