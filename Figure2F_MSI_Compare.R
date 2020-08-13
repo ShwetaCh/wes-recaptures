@@ -69,11 +69,11 @@ rho = as.numeric(corr$estimate)
 rho
 ### scatter plot LINEAR scale Original
 #pdf(file='msi_comparison_022719.pdf', width = 11, height = 8)
-msi_plot = ggplot(comb_msi, 
+msi1 = ggplot(comb_msi, 
                   aes(x = MSI_IMPACT, y = MSI_Exome)) + 
   coord_fixed() +
   #facet_wrap(~Algorithm) +
-  geom_point(alpha = 0.5, size = 3, shape = 16, color = "#08519c") +
+  geom_point(pch = 21, size = 2, fill = 'lightgray') +
   #geom_abline(col = "blue") +
   scale_x_continuous(limits = c(0,50)) +
   scale_y_continuous(limits = c(0,50)) +
@@ -83,12 +83,54 @@ msi_plot = ggplot(comb_msi,
   geom_vline(xintercept = 10, linetype = 'dashed', color = 'red') +
   geom_hline(yintercept = 3.5, linetype = 'dashed', color = 'red') +
   geom_abline(intercept = 0, slope = 1, col = "black") + 
-  annotate('text', y = c(3.5)+0.5, x = 40, color = 'darkred', label = c('EXOME MSI high (3.5)'), size = 3.5) +
+  annotate('text', y = c(3.5)+0.5, x = 28, color = 'darkred', label = c('EXOME MSI high (3.5)'), size = 3.5) +
   annotate('text', x = c(10)-0.5, y = 28, color = 'darkred', label = c('IMPACT MSI high (10)'), size = 3.5, angle = 90) +
-  theme(axis.text.x = element_text(colour = "blue")) +
-  theme(axis.text.y = element_text(colour = "blue")) +
-  theme(plot.title = element_text(colour = "blue", size = 14)) +
-  labs(title = paste0("MSI-sensor score","\n",
-                      "		R^2 = ",specify_decimal(r2,3),"\n",
-                      "		Spearman Correlation = ",specify_decimal(rho,3),"\n"), x = "IMPACT MSI", y = "Exome MSI")
-print(msi_plot)
+  # theme(axis.text.x = element_text(colour = "blue")) +
+  # theme(axis.text.y = element_text(colour = "blue")) +
+  theme(plot.title = element_text(size = 14),plot.margin = unit(c(1,1,1,1), 'lines')) +
+  labs(title = paste0(#"MSI-sensor score","\n",
+                      "R^2 = ",specify_decimal(r2,3),"\n"
+                      #"		,Spearman Correlation = ",specify_decimal(rho,3),"\n"
+                      ), x = "IMPACT MSI", y = "Exome MSI")
+msi1
+
+######---------------------------------------------------------------------------------------------------------------------------------------------------
+print("Zoomed in scatter plot--->") 
+######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+comb_msi = comb_msi %>% mutate(.,MSI_Status=ifelse(MSI_Exome>=10 & MSI_IMPACT<10,"Discordant MSS","Concordant MSS"));
+#comb_msi = comb_msi %>% mutate(.,MSI_Status=ifelse(MSI_Exome<3.5 & MSI_IMPACT<10,"Discordant MSI_Status","Concordant MSS"));
+
+comb_msi = comb_msi %>% mutate(.,MSI_Status=ifelse(MSI_Exome<3.5 & MSI_IMPACT>3,"MSI-I/WES-MSS",MSI_Status));
+comb_msi = comb_msi %>% mutate(.,MSI_Status=ifelse(((MSI_Exome>=3.5 & MSI_Exome<10) & (MSI_IMPACT >= 3 & MSI_IMPACT < 10)),"MSI-I",MSI_Status));
+
+#pdf(file='zoomed_msi_comparison_022719.pdf', width = 11, height = 8)
+
+
+theme_set(theme_classic(base_size = 14))
+msi2 = ggplot(comb_msi,aes(y=MSI_Exome,x=MSI_IMPACT,color=MSI_Status) )+
+  #geom_smooth(method=lm, se=FALSE) +
+  geom_vline(xintercept = 10, linetype = 'dashed', color = 'red') +
+  geom_vline(xintercept = 3, linetype = 'dashed', color = 'red') +
+  geom_hline(yintercept = 3.5, linetype = 'dashed', color = 'black') +
+  
+  #geom_abline(col = "black",slope=1, intercept =0) + 
+  #geom_hline(yintercept = 3.5, linetype = 'dashed', color = 'red') +
+  geom_abline(intercept = 0, slope = 1) +  geom_point(pch = 21, size = 2, fill = 'lightgray') + ylim(c(0, 15)) + xlim(c(0,10)) + 
+  scale_colour_manual(values = c("#08519c","red","forestgreen","orange")) +
+  # theme(axis.text.x = element_text(colour = "blue")) +
+  # theme(axis.text.y = element_text(colour = "blue")) +
+  theme(plot.title = element_text(size = 14)) +
+  annotate('text', y = c(3.5)+.25, x = 7.5, color = 'black', label = c('3.5'), size = 3.5) +
+  annotate('text', x = c(10)-.25, y = 14, color = 'darkred', label = c('10'), size = 3.5) +
+  annotate('text', x = c(3)-.25, y = 14, color = 'darkred', label = c('3'), size = 3.5) +
+  theme(legend.position = 'bottom',plot.margin = unit(c(1,1,1,1), 'lines'))
+msi2
+pdf("~/tempo-cohort-level/Figure2F_MSI_Compare.pdf", paper = "a4r")
+grid.arrange(msi1, msi2, ncol = 2, newpage = F)
+dev.off()
+
+#dev.off()
+### Tracking those MSI patients
+filter(comb_msi,MSI_IMPACT<10, MSI_Exome>10) %>% select(DMP) #Red
+filter(comb_msi,MSI_IMPACT>3, MSI_Exome<=0.5) %>% select(DMP) #Greens
+filter(comb_msi,(MSI_Exome>3.5 & MSI_Exome<10),(MSI_IMPACT > 3 & MSI_IMPACT < 10)) %>% select(DMP) #Orange
